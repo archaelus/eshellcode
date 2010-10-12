@@ -7,6 +7,16 @@
 dbg:stop_clear().
 f(GL).
 GL=group_leader().
+f(ArgsToList).
+ArgsToList = fun (Args) ->
+                     string:join([ if is_pid(A) ->
+                                           "pid("++string:join(string:tokens(pid_to_list(A) -- "<>", "."), ",") ++ ")";
+                                      true ->
+                                           io_lib:format("~p", [A])
+                                   end
+                                   || A <- Args ], ", ")
+             end.
+                           
 f(TS).
 TS = fun (TimeStamp = {_,_,Mics}) ->
              {_,{H, M, Secs}} = calendar:now_to_local_time(TimeStamp),
@@ -20,22 +30,16 @@ TS = fun (TimeStamp = {_,_,Mics}) ->
 dbg:tracer(process,
            {fun ({trace, Pid, 'call', Call={CM,CF,CA}}, CallStack) ->
                     [H,M,Seconds] = TS(erlang:now()),
-                    Args = string:join([ io_lib:format("~p", [T])
-                                         || T <- CA],
-                                       ","),
                     io:format(GL, "~n~p:~p:~p ~p ~p:~p(~s)~n",
-                              [H, M, Seconds, Pid, CM, CF, Args]),
+                              [H, M, Seconds, Pid, CM, CF, ArgsToList(CA)]),
                     [{{Pid, CM, CF, length(CA)}, CA} | CallStack];
                 ({trace, Pid, return_from, {CM,CF,CA}, Val}, CallStack) ->
                     CallKey = {Pid, CM, CF, CA},
                     [H,M,Seconds] = TS(erlang:now()),
                     case proplists:get_value(CallKey, CallStack) of
                         AList ->
-                            Args = string:join([ io_lib:format("~p", [T])
-                                                 || T <- AList],
-                                               ","),
                             io:format(GL, "~n~p:~p:~p ~p ~p:~p(~s)~n--> ~p~n",
-                                      [H, M, Seconds, Pid, CM, CF, Args, Val]),
+                                      [H, M, Seconds, Pid, CM, CF, ArgsToList(AList), Val]),
                             lists:delete(CallKey, CallStack);
                         undefined ->
                             io:format(GL, "~n~p:~p:~p ~p ~p:~p/~p --> ~p~n",
@@ -77,3 +81,20 @@ dbg:tracer(process,
             end,
             []}).
 
+f(RetTraceP).
+RetTraceP = dbg:fun2ms(fun (_) -> return_trace() end).
+
+f(DM).
+DM = fun (Mods) ->
+             [ dbg:tp(Mod, RetTraceP)
+               || Mod <- Mods ],
+             ok
+     end.
+
+f(DMExcept).
+DMExcept = fun (Module, Functions) ->
+                   [dbg:tp(Module, F, A, RetTraceP)
+                    || {F, A} <- Module:module_info(exports),
+                       not lists:member({F,A}, Functions) ]
+           end.
+                   
