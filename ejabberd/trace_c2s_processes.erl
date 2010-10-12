@@ -22,14 +22,5 @@ Mods = fun (Dir) ->
                 || B <- filelib:wildcard(filename:join(Dir, "*.beam"))]
        end.
 
-f(DM).
-DM = fun (Mods) ->
-             [ dbg:tp(Mod,
-                      dbg:fun2ms(fun (_) ->
-                                         return_trace()
-                                 end))
-               || Mod <- Mods ]
-     end.
-
 f(NL).
 NL = fun (Mods) -> [ nl(M) || M <- Mods ], abcast end.
