@@ -25,4 +25,5 @@ CmpModule = fun (Module) ->
 f(CmpApp).
 CmpApp = fun (App) ->
                  [{M, CmpModule(M)}
-                  || M  <- element(2, application:get_key(App, modules))].
+                  || M  <- element(2, application:get_key(App, modules))]
+         end.
