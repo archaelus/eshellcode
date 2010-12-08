@@ -5,10 +5,9 @@
 %% @end
 
 f(GetConfig).
-GetConfig = fun (App) ->
+GetConfig = fun (App,SystemConfigFile,AppFile) ->
                     {ok, RunningConfig} = application:get_all_key(App),
-                    {ok, [{application, App, StartupConfig}]} = file:consult(filename:join([code:lib_dir(App), "ebin", atom_to_list(App) ++ ".app"])),
-                    {ok, [[SystemConfigFile]]} = init:get_argument(config),
+                    {ok, [{application, App, StartupConfig}]} = file:consult(AppFile),
                     {ok, [SystemConfig]} = file:consult(SystemConfigFile ++ ".config"),
                     SystemAppConfig = proplists:get_value(App, SystemConfig),
                     MergedStartupEnv = {env, lists:foldl(fun ({K, V}, Acc) ->
@@ -25,9 +24,21 @@ GetConfig = fun (App) ->
                     {RunningConfig, MergedStartupConfig}
             end.
 
+f(DefaultConfig).
+DefaultConfig = fun (App) ->
+                        AppFile = filename:join([code:lib_dir(App), "ebin", atom_to_list(App) ++ ".app"]),
+                        {ok, [[SystemConfigFile]]} = init:get_argument(config),
+                        GetConfig(App, SystemConfigFile, AppFile)
+                end.
+
 f(DiffConfig).
 DiffConfig = fun (App) ->
-                     {RunningConfig, StartupConfig} = GetConfig(App),
+                     {RunningConfig, StartupConfig} = DefaultConfig(App),
+                     DiffConfig2({RunningConfig,StartupConfig})
+             end.
+
+f(DiffConfig2).
+DiffConfig2 = fun ({RunningConfig,StartupConfig}) ->
                      RunningEnv = proplists:get_value(env, RunningConfig),
                      StartupEnv = proplists:get_value(env, StartupConfig),
                      RunningEnvKeys = proplists:get_keys(RunningEnv),
