@@ -6,6 +6,9 @@
 
 f(CmpModule).
 CmpModule = fun (Module) ->
+                    Secs = fun ({YY,MM,DD,H,M,S}) ->
+                                   calendar:datetime_to_gregorian_seconds({{YY,MM,DD},{H,M,S}})
+                           end,
                     {file, File} = code:is_loaded(Module),
                     {ok, {Module, [{compile_info, CI}]}} = beam_lib:chunks(File, [compile_info]),
                     LoadedTime = proplists:get_value(time, Module:module_info(compile)),
@@ -16,8 +19,8 @@ CmpModule = fun (Module) ->
                             [{loaded, LoadedTime},
                              {disk, DiskTime},
                              {disk_is_newer,
-                              calendar:datetime_to_gregorian_seconds(DiskTime) -
-                                  calendar:datetime_to_gregorian_seconds(LoadedTime)
+                              Secs(DiskTime) -
+                                  Secs(LoadedTime)
                              }]
                     end
             end.
