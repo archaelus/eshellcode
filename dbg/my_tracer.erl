@@ -97,3 +97,5 @@ DMExcept = fun (Module, Functions) ->
                     || {F, A} <- Module:module_info(exports),
                        not lists:member({F,A}, Functions) ]
            end.
+
+[ dbg:n(N) || N <- nodes() ].
