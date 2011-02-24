@@ -31,12 +31,6 @@ DefaultConfig = fun (App) ->
                         GetConfig(App, SystemConfigFile, AppFile)
                 end.
 
-f(DiffConfig).
-DiffConfig = fun (App) ->
-                     {RunningConfig, StartupConfig} = DefaultConfig(App),
-                     DiffConfig2({RunningConfig,StartupConfig})
-             end.
-
 f(DiffConfig2).
 DiffConfig2 = fun ({RunningConfig,StartupConfig}) ->
                      RunningEnv = proplists:get_value(env, RunningConfig),
@@ -69,3 +63,10 @@ DiffConfig2 = fun ({RunningConfig,StartupConfig}) ->
                             {added,Added},
                             {deleted,Deleted}]}]
              end.
+
+f(DiffConfig).
+DiffConfig = fun (App) ->
+                     {RunningConfig, StartupConfig} = DefaultConfig(App),
+                     DiffConfig2({RunningConfig,StartupConfig})
+             end.
+
