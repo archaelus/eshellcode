@@ -30,39 +30,31 @@ TS = fun (TimeStamp = {_,_,Mics}) ->
 dbg:tracer(process,
            {fun ({trace, Pid, 'call', Call={CM,CF,CA}}, CallStack) ->
                     [H,M,Seconds] = TS(erlang:now()),
-                    io:format(GL, "~n~p:~p:~6.3.0f ~p ~p:~p(~s)~n",
-                              [H, M, Seconds, Pid, CM, CF, ArgsToList(CA)]),
-                    [{{Pid, CM, CF, length(CA)}, CA} | CallStack];
+                    io:format(GL, "~n~p:~p:~p ~p ~p:~p/~p~n",
+                              [H, M, Seconds, Pid, CM, CF, length(CA)]),
+                    CallStack;
                 ({trace, Pid, return_from, {CM,CF,CA}, Val}, CallStack) ->
-                    CallKey = {Pid, CM, CF, CA},
                     [H,M,Seconds] = TS(erlang:now()),
-                    case proplists:get_value(CallKey, CallStack) of
-                        AList ->
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p ~p:~p(~s)~n--> ~p~n",
-                                      [H, M, Seconds, Pid, CM, CF, ArgsToList(AList), Val]),
-                            lists:delete(CallKey, CallStack);
-                        undefined ->
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p ~p:~p/~p --> ~p~n",
-                                      [H, M, Seconds, Pid, CM, CF, CA, Val]),
-                            CallStack
-                    end;
+                    io:format(GL, "~n~p:~p:~p ~p ~p:~p/~p --> ~p~n",
+                              [H, M, Seconds, Pid, CM, CF, CA, Val]),
+                    CallStack;
                 (Msg, CallStack) ->
                     case Msg of
                         {trace, Pid, 'receive', TMsg} ->
                             [H,M,Seconds] = TS(erlang:now()),
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p < ~p~n",
+                            io:format(GL, "~n~p:~p:~p ~p < ~p~n",
                                       [H, M, Seconds, Pid, TMsg]);
                         {trace, Pid, 'send', TMsg, ToPid} ->
                             [H,M,Seconds] = TS(erlang:now()),
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p > ~p: ~p~n",
+                            io:format(GL, "~n~p:~p:~p ~p > ~p: ~p~n",
                                       [H, M, Seconds, Pid, ToPid, TMsg]);
                         {trace_ts, Pid, 'receive', TMsg, Timestamp} ->
                             [H,M,Seconds] = TS(Timestamp),
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p < ~p~n",
+                            io:format(GL, "~n~p:~p:~p ~p < ~p~n",
                                       [H, M, Seconds, Pid, TMsg]);
                         {trace_ts, Pid, 'send', TMsg, ToPid, Timestamp} ->
                             [H,M,Seconds] = TS(Timestamp),
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p > ~p: ~p~n",
+                            io:format(GL, "~n~p:~p:~p ~p > ~p: ~p~n",
                                       [H, M, Seconds, Pid, ToPid, TMsg]);
                         _Else ->
                             Timestamp = case element(tuple_size(Msg), Msg) of
@@ -73,7 +65,7 @@ dbg:tracer(process,
                                             _Other -> erlang:now()
                                         end,
                             [H,M,Seconds] = TS(Timestamp),
-                            io:format(GL, "~n~p:~p:~6.3.0f ~p~n",
+                            io:format(GL, "~n~p:~p:~p ~p~n",
                                       [H, M, Seconds, Msg])
  
                     end,
@@ -97,5 +89,4 @@ DMExcept = fun (Module, Functions) ->
                     || {F, A} <- Module:module_info(exports),
                        not lists:member({F,A}, Functions) ]
            end.
-
-[ dbg:n(N) || N <- nodes() ].
+                   

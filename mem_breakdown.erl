@@ -13,7 +13,7 @@ f(Breakdown).
 Breakdown = fun (mem) ->
                     Mem = erlang:memory(),
                     Total = proplists:get_value(total, Mem),
-                    [{K, trunc(V*10000 / Total) / 100, V}
+                    [{K, trunc(V*10000 / Total) / 100, V / (1024*1024), V}
                      || {K, V} <- Mem,
                         K =/= total];
                 (ets) ->
