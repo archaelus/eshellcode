@@ -3,7 +3,7 @@
 %% @version {@vsn}, {@date} {@time}
 %% @doc Erlang shell code to trace process messages to a wrap log.
 %% @end
- 
+
 dbg:stop_clear().
 f(GL).
 GL=group_leader().
@@ -11,9 +11,6 @@ f(Log).
 {ok, Log} = file:open("dbg_trace.txt",
                       [write,
                        delayed_write]).
-
-
-
 f(ArgsToList).
 ArgsToList = fun (Args) ->
                      string:join([ if is_pid(A) ->
@@ -23,44 +20,47 @@ ArgsToList = fun (Args) ->
                                    end
                                    || A <- Args ], ", ")
              end.
-                           
-f(TS).
-TS = fun (TimeStamp = {_,_,Mics}) ->
-             {_,{H, M, Secs}} = calendar:now_to_local_time(TimeStamp),
-             Micros = Mics div 1000,
-             Seconds = Secs rem 60 + (Micros / 1000),
-             [H,M,Seconds];
-         (OtherTimestamp) ->
-             io:format(GL, "Help, help, got weird ts: ~p~n", [OtherTimestamp]),
-             [0,0,0]
-     end,
+
+f(LogFmt).
+LogFmt = fun (Log, {_,_,Mics} = TS, Fmt, Args) ->
+                 {_,{H, M, Secs}} = calendar:now_to_local_time(TS),
+                 Micros = Mics div 1000,
+                 Seconds = Secs rem 60 + (Micros / 1000),
+                 io:format(Log, "~n~2.2.0w:~2.2.0w:~6.3.0f " ++ Fmt ++ "~n",
+                           [H,M,Seconds] ++ Args)
+         end.
+
 dbg:tracer(process,
-           {fun ({trace, Pid, 'call', Call={CM,CF,CA}}, CallStack) ->
-                    Now = erlang:now(),
-                    [H,M,Seconds] = TS(Now),
-                    %%io:format(GL, "~n~p:~p:~p ~p ~p:~p(~s)~n",
-                    %%          [H, M, Seconds, Pid, CM, CF, ArgsToList(CA)]),
-                    [{{Pid, CM, CF, length(CA)}, {CA, Now}} | CallStack];
-                ({trace, Pid, return_from, {CM,CF,CA}, Val}, CallStack) ->
-                    Now = erlang:now(),
-                    CallKey = {Pid, CM, CF, CA},
-                    [H,M,Seconds] = TS(Now),
-                    case proplists:get_value(CallKey, CallStack) of
-                        {AList,CallTS} ->
-                            Elapsed = timer:now_diff(Now, CallTS),
-                            if Elapsed > 100000 -> % 100 * 1000
-                                    io:format(Log, "~n~p:~p:~p ~p ~p:~p(~s)~n--> ~p in ~pus~n",
-                                              [H, M, Seconds, Pid, CM, CF, ArgsToList(AList), Val, Elapsed]);
-                               true -> ok
-                            end,
-                            lists:delete(CallKey, CallStack);
-                        undefined ->
-                            CallStack
-                    end;
-                (_, CallStack) ->
+           {fun (T, CallStack) ->
+                    {Now, Trace} = case element(1,T) of
+                                       trace ->
+                                           {erlang:now(), list_to_tuple(tl(tuple_to_list(T)))};
+                                       trace_ts ->
+                                           {element(tuple_size(T), T),
+                                            list_to_tuple(string:sub_string(tuple_to_list(T),2, tuple_size(T) - 1))};
+                                       _ -> {erlang:now(), T}
+                                   end,
+                    case Trace of
+                        {Pid, 'call', {CM,CF,CA}} ->
+                            LogFmt(Log, TS, "~p ~p:~p(~s)~n",
+                                   [Pid, CM, CF, ArgsToList(CA)]);
+                        {Pid, 'return_from', {CM,CF,CA}, Val} ->
+                            LogFmt(Log, TS, "~p ~p:~p/~p -->~n~p~n",
+                                      [Pid, CM, CF, CA, Val]);
+                        {Pid, 'receive', TMsg} ->
+                            LogFmt(Log, TS, "~p < ~p~n",
+                                   [Pid, TMsg]);
+                        {Pid, 'send', TMsg, ToPid} ->
+                            LogFmt(Log, TS, "~p > ~p : ~p~n",
+                                   [Pid, ToPid, TMsg]);
+                        Else ->
+                            LogFmt(Log, TS, "~p~n",
+                                   [Else])
+                    end,
                     CallStack
             end,
             []}).
+
 
 f(RetTraceP).
 RetTraceP = dbg:fun2ms(fun (_) -> return_trace() end).
@@ -68,10 +68,13 @@ RetTraceP = dbg:fun2ms(fun (_) -> return_trace() end).
 f(Stop).
 Stop = fun () ->
                dbg:stop_clear(),
-               io:format(Log, "~nTrace stopped at ~p.~n", [erlang:now()]),
+               LogFmt(Log, erlang:now(), "~nTrace stopped.~n", []),
                file:close(Log)
        end.
 
-io:format(Log, "Trace started on ~p at ~p.~n", [node(), calendar:local()]).
+LogFmt(Log, erlang:now(),
+       "Trace started from ~p.~n", [node()]).
+
+[dbg:n(N) || N <- nodes()].
 
 Stop().
