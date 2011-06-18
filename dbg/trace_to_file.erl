@@ -42,19 +42,19 @@ dbg:tracer(process,
                                    end,
                     case Trace of
                         {Pid, 'call', {CM,CF,CA}} ->
-                            LogFmt(Log, TS, "~p ~p:~p(~s)~n",
+                            LogFmt(Log, Now, "~p ~p:~p(~s)~n",
                                    [Pid, CM, CF, ArgsToList(CA)]);
                         {Pid, 'return_from', {CM,CF,CA}, Val} ->
-                            LogFmt(Log, TS, "~p ~p:~p/~p -->~n~p~n",
+                            LogFmt(Log, Now, "~p ~p:~p/~p -->~n~p~n",
                                       [Pid, CM, CF, CA, Val]);
                         {Pid, 'receive', TMsg} ->
-                            LogFmt(Log, TS, "~p < ~p~n",
+                            LogFmt(Log, Now, "~p < ~p~n",
                                    [Pid, TMsg]);
                         {Pid, 'send', TMsg, ToPid} ->
-                            LogFmt(Log, TS, "~p > ~p : ~p~n",
+                            LogFmt(Log, Now, "~p > ~p : ~p~n",
                                    [Pid, ToPid, TMsg]);
                         Else ->
-                            LogFmt(Log, TS, "~p~n",
+                            LogFmt(Log, Now, "~p~n",
                                    [Else])
                     end,
                     CallStack
