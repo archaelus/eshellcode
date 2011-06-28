@@ -17,7 +17,7 @@ TablePid = erlang:spawn(fun () ->
                         end).
 
 f(Threshold).
-Threshold = 100 * 1000. %% 100ms
+Threshold = 25 * 1000. %% 25ms
 
 f(GL). GL = group_leader().
 f(ArgsToList).
