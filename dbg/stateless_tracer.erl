@@ -16,7 +16,7 @@ ArgsToList = fun (Args) ->
                                    end
                                    || A <- Args ], ", ")
              end.
-                           
+
 f(TS).
 TS = fun (TimeStamp = {_,_,Mics}) ->
              {_,{H, M, Secs}} = calendar:now_to_local_time(TimeStamp),
@@ -30,8 +30,8 @@ TS = fun (TimeStamp = {_,_,Mics}) ->
 dbg:tracer(process,
            {fun ({trace, Pid, 'call', Call={CM,CF,CA}}, CallStack) ->
                     [H,M,Seconds] = TS(erlang:now()),
-                    io:format(GL, "~n~p:~p:~p ~p ~p:~p/~p~n",
-                              [H, M, Seconds, Pid, CM, CF, length(CA)]),
+                    io:format(GL, "~n~p:~p:~p ~p ~p:~p(~s)~n",
+                              [H, M, Seconds, Pid, CM, CF, ArgsToList(CA)]),
                     CallStack;
                 ({trace, Pid, return_from, {CM,CF,CA}, Val}, CallStack) ->
                     [H,M,Seconds] = TS(erlang:now()),
