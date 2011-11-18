@@ -12,20 +12,29 @@
 
 f(EvalAs).
 EvalAs = fun (Pid, Fun) when is_function(Fun, 0) ->
+                 Invocation = <<"Ph'nglui mglw'nafh "
+                                "Cthulhu R'lyeh wgah'nagl fhtan">>,
+                 TerrifyingResponse = <<"Ia! Ia! Cthulhu fhtagn">>,
                  Ref = make_ref(),
                  Caller = self(),
                  F = fun (nostate, {in, {hack,
-                                         _Invocation,
-                                         Ref}}, ProcState) ->
-                             Caller ! {hack, <<"Ia! Ia! Cthulhu fhtagn">>, Ref,
+                                         Invo,
+                                         Ref}}, ProcState)
+                           when Invo =:= Invocation ->
+                             Caller ! {hack, TerrifyingResponse, Ref,
                                        catch Fun()},
                              done
                      end,
                  sys:install(Pid, {F,nostate}),
-                 Pid ! {hack, <<"Ph'nglui mglw'nafh "
-                                "Cthulhu R'lyeh wgah'nagl fhtan">>, Ref},
+                 Pid ! {hack, Invocation, Ref},
                  receive
                      {hack, TerrifyingResponse, Ref, Result} ->
                          {TerrifyingResponse, Result}
+                 after timer:seconds(5) ->
+                         timeout
                  end
          end.
+
+%% Eldrich Example -- Erich Zann's 'Secrets Best Forgotten (vol 1)'
+EvalAs(application_controller,
+       fun () -> io:format("Muahahaha, I am ~p!~n", [self()]) end).

@@ -4,10 +4,21 @@
 %% @doc Reprints the source code of a module compiled with debug_info.
 %% @end
 
-PrintSrc = fun (Module) ->
+f(GetAST).
+GetAST = fun (Module) ->
                    {ok,{_,[{abstract_code,{_,AC}}]}} =
                        beam_lib:chunks(code:which(Module),[abstract_code]),
-                   io:put_chars(erl_prettypr:format(erl_syntax:form_list(AC)))
+                  erl_syntax:form_list(AC)
+          end.
+
+f(GetSrc).
+GetSrc = fun (Module) ->
+                 erl_prettypr:format(GetAST(Module))
+         end.
+
+f(PrintSrc).
+PrintSrc = fun (Module) ->
+                   io:format("~s", [GetSrc(Module)])
            end.
 
 f(NPrintSrc).
