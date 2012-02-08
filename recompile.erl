@@ -10,7 +10,6 @@ Recompile = fun(Mod, ExtraOpts) ->
                     Compile = Mod:module_info(compile),
                     OldTime = proplists:get_value(time, Compile),
                     Opts = proplists:get_value(options, Compile),
-                    case c:c(proplists:get_value(source, Compile),
-                             ExtraOpts ++ [{outdir, OutDir}] ++ Opts) of
-                        
+                    c:c(proplists:get_value(source, Compile),
+                        ExtraOpts ++ [{outdir, Outdir}] ++ Opts)
             end.
