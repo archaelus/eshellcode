@@ -15,3 +15,14 @@ Upgrade = fun (Pids, Module) ->
                     end || P <- Pids ],
                   code:soft_purge(Module)
             end.
+
+f(Upgrade2).
+Upgrade2 = fun (Pids, Module, Extra) ->
+                  [ sys:suspend(P) || P <- Pids],
+                  l(Module),
+                  [ begin
+                        sys:change_code(P, Module, undefined, Extra),
+                        sys:resume(P)
+                    end || P <- Pids ],
+                  code:soft_purge(Module)
+            end.
