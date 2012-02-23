@@ -10,12 +10,12 @@ Info = fun (P,I) ->
        end.
 
 f(TopN).
-TopN = fun (N) ->
-               element(1, lists:split(N, lists:reverse(lists:keysort(2, [{P, Info(P, memory)} || P <- erlang:processes(), is_process_alive(P)]))))
+TopN = fun (N, Metric) ->
+               element(1, lists:split(N, lists:reverse(lists:keysort(2, [{P, Info(P, Metric)} || P <- erlang:processes(), is_process_alive(P)]))))
        end.
 
 f(MoreInfo).
 MoreInfo = fun (N) ->
                    [{P, (Mem / (1024*1024)), Info(P, message_queue_len), process_info(P, registered_name)}
-                    || {P, Mem} <- TopN(N)]
+                    || {P, Mem} <- TopN(N, memory)]
            end.
