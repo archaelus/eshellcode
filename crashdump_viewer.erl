@@ -7,6 +7,13 @@
 %% filesystem, then run LoadDump("/path/to/dump").
 %% @end
 
+%% Hipe compile some stuff
+hipe:c(gb_trees, [load]).
+hipe:c(crashdump_viewer, [load]).
+
+webtool:start().
+crashdump_viewer:start().
+
 f(LoadDump).
 LoadDump = fun (FileName) when is_list(FileName) ->
                    gen_server:call(crashdump_viewer_server,
