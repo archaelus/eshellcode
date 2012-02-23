@@ -13,11 +13,17 @@ GetStatus = fun (Pid) ->
                        {'$initial_call',MFA}],
                       _,_,Debug,
                       [_,
-                       State,
-                       Mod,infinity]]} = sys:get_status(Pid, timer:seconds(1)),
+                       {data, _},
+                       {data, [{"State", State}]}]]}
+                       = sys:get_status(Pid, timer:seconds(1)),
                     [{state, State},
                      Module,
                      {ancestors, Ancestors},
                      {initial_call, MFA},
                      {debug_flags, Debug}]
             end.
+
+f(GetState).
+GetState = fun (Pid) ->
+                   proplists:get_value(state, GetStatus(Pid))
+           end.
