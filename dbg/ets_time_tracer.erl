@@ -71,7 +71,13 @@ dbg:tracer(process,
                     catch
                         _ -> Count
                     end;
-                (Msg, Count) -> Count
+                (Msg, Count) ->
+                    case Count rem 1000 of
+                        0 ->
+                            io:format(GL, "~nUnknown dbg message: ~p", [Msg]);
+                        _ -> ok
+                    end,
+                    Count + 1
             end,
             1}).
 
