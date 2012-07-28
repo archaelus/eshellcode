@@ -4,3 +4,6 @@
 %% @end
 
 dbg:tracer(process, {fun dbg:dhandler/2, group_leader()}).
+
+dbg:stop_clear().
+
