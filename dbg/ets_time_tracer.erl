@@ -3,6 +3,8 @@
 %% @version {@vsn}, {@date} {@time}
 %% @doc Trace call counts to ets.
 %% @end
+TablePid ! exit.
+
 f().
 dbg:stop_clear().
 
