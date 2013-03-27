@@ -3,7 +3,8 @@
 %% @doc Simplest dbg tracer process.
 %% @end
 
+dbg:stop_clear().
+
 dbg:tracer(process, {fun dbg:dhandler/2, group_leader()}).
 
-dbg:stop_clear().
 
