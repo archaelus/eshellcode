@@ -1,6 +1,9 @@
-
+%
 % Shows which kinds of processes are running in the system (grouping by initial_call MFA)
 % Useful for analyzing process leaks
+%
+% Copyright 2013 by Yuriy Bogdanov <chinsay at gmail>
+% (MIT LICENSE)
 %
 % Example:
 % 
